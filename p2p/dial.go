@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/netutil"
+	"github.com/ethereum/go-ethereum/GcoinAuth/Auth"
 )
 
 const (
@@ -80,6 +81,7 @@ var (
 	errNotWhitelisted   = errors.New("not contained in netrestrict whitelist")
 	errNoPort           = errors.New("node does not provide TCP port")
 )
+
 
 // dialer creates outbound connections and submits them into Server.
 // Two types of peer connections can be created:
@@ -190,9 +192,15 @@ func (d *dialScheduler) stop() {
 
 // addStatic adds a static dial candidate.
 func (d *dialScheduler) addStatic(n *enode.Node) {
-	select {
-	case d.addStaticCh <- n:
-	case <-d.ctx.Done():
+	result := Auth.CheckAdmin()
+	if(result == true){
+		var applicantAddress string
+		fmt.Scan(&applicantAddress)
+		Auth.AddPeerStateUpdate(applicantAddress)
+		select {
+		case d.addStaticCh <- n:
+		case <-d.ctx.Done():
+		}
 	}
 }
 
